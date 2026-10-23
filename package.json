@@ -1,0 +1,22 @@
+{
+  "name": "fit-js",
+  "version": "1.0.0",
+  "description": "Fit.js - API REST de gestión de gimnasio con arquitectura en capas",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL/issues"
+  },
+  "homepage": "https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL#readme"
+}
