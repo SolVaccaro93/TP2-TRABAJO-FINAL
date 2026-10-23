@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL/issues"
   },
-  "homepage": "https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL#readme"
+  "homepage": "https://github.com/SolVaccaro93/TP2-TRABAJO-FINAL#readme",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "zod": "^4.6.7"
+  }
 }
