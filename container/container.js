@@ -30,6 +30,12 @@ export const makeContainer = () => {
 
   // Router principal
   const router = Router();
+  router.get('/', (req, res) => {
+    res.status(200).json({
+      nombre: 'Fit.js API',
+      recursos: ['/socios', '/clases', '/inscripciones'],
+    });
+  });
   router.use('/socios', makeSocioRouter({ socioController }));
   router.use('/clases', makeClaseRouter({ claseController }));
   router.use('/inscripciones', makeInscripcionRouter({ inscripcionController }));
