@@ -1,12 +1,12 @@
 # Arquitectura de Fit.js
 
-Fit.js es una API REST en capas: cada request baja hasta los datos y cada capa tiene una sola responsabilidad. Por ahora están implementados Socio y Clase, con persistencia en memoria.
+Fit.js es una API REST en capas: cada request baja hasta los datos y cada capa tiene una sola responsabilidad. Están implementados Socio, Clase e Inscripción, con persistencia en memoria. Inscripción vincula un socio con una clase y valida que ambos existan, que no haya duplicados y que quede cupo disponible.
 
 Versión visual: [tablero en Miro](https://miro.com/app/board/uXjVERWaj4Y=/).
 
 ## Flujo de una request
 
-Ejemplo con `POST /socios`; Clase sigue el mismo recorrido con sus propios archivos. Las flechas dobles indican que la capa llama a la siguiente y recibe el resultado.
+Ejemplo con `POST /socios`; Clase e Inscripción siguen el mismo recorrido con sus propios archivos. Inscripción consulta también los DAOs de Socio y Clase para aplicar sus reglas de negocio. Las flechas dobles indican que la capa llama a la siguiente y recibe el resultado.
 
 ```mermaid
 flowchart TD
@@ -53,7 +53,7 @@ flowchart TD
 
 ## Cómo se arma al arrancar
 
-`container/container.js` conecta las capas en sentido inverso al de la request: crea primero lo de abajo y se lo pasa a la capa de arriba. `index.js` monta el router que devuelve. El diagrama muestra Socio; Clase se arma igual y se monta en `/clases`.
+`container/container.js` conecta las capas en sentido inverso al de la request: crea primero lo de abajo y se lo pasa a la capa de arriba. `index.js` monta el router que devuelve. El diagrama muestra Socio; Clase e Inscripción se arman de forma equivalente y se montan en `/clases` y `/inscripciones`.
 
 ```mermaid
 flowchart LR
@@ -61,7 +61,7 @@ flowchart LR
     usecases["makeSocioUseCases"]
     controller["makeSocioController"]
     router["makeSocioRouter"]
-    principal["Router principal: /socios y /clases"]
+    principal["Router principal: /socios, /clases y /inscripciones"]
     index["index.js"]
 
     dao -- "socioDao" --> usecases
