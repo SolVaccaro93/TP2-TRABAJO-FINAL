@@ -60,6 +60,8 @@ flowchart LR
     dao["new SocioMemoryDao()"]
     eventBus["new EventEmitter()"]
     usecases["makeSocioUseCases"]
+    listener["listeners/inscripcion.listener.js"]
+    notifier["notifiers/console.notifier.js"]
     controller["makeSocioController"]
     router["makeSocioRouter"]
     principal["Router principal: /socios, /clases y /inscripciones"]
@@ -67,6 +69,8 @@ flowchart LR
 
     dao -- "socioDao" --> usecases
     eventBus -- "eventBus" --> usecases
+    eventBus -- "inscripcion.creada" --> listener
+    listener -- "notificarInscripcionCreada" --> notifier
     usecases -- "socioUseCases" --> controller
     controller -- "socioController" --> router
     router --> principal --> index
@@ -74,6 +78,7 @@ flowchart LR
 
 - **Inyección manual:** cada capa recibe lo que necesita en vez de crearlo.
 - **Bus de eventos:** los casos de uso comparten el `EventEmitter` creado por el contenedor. Al guardar una inscripción, su caso de uso emite `inscripcion.creada` con el registro persistido.
+- **Notificaciones:** el listener de inscripción deriva el evento al notificador de consola y captura los errores del notificador sin interrumpir el caso de uso.
 - **Cambio de persistencia:** para pasar a SQLite se cambia el DAO en el contenedor, sin tocar los casos de uso.
 - **Una sola llamada:** cada `makeContainer()` crea un DAO nuevo y vacío, por eso `index.js` lo llama una sola vez.
 

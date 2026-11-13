@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { EventEmitter } from 'node:events';
+import { registerInscripcionListener } from '../listeners/inscripcion.listener.js';
+import { makeConsoleNotifier } from '../notifiers/console.notifier.js';
 import { SocioMemoryDao } from '../dao/memory/socio.memory.dao.js';
 import { makeSocioUseCases } from '../usecases/socio.usecases.js';
 import { makeSocioController } from '../controllers/socio.controller.js';
@@ -15,6 +17,8 @@ import { makeInscripcionRouter } from '../routes/inscripcion.routes.js';
 
 export const makeContainer = () => {
   const eventBus = new EventEmitter();
+  const notifier = makeConsoleNotifier();
+  registerInscripcionListener({ eventBus, notifier });
 
   // DAOs
   const socioDao = new SocioMemoryDao();

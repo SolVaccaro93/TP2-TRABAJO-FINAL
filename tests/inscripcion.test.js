@@ -8,6 +8,8 @@ import { ClaseMemoryDao } from '../dao/memory/clase.memory.dao.js';
 import { InscripcionMemoryDao } from '../dao/memory/inscripcion.memory.dao.js';
 import { SocioMemoryDao } from '../dao/memory/socio.memory.dao.js';
 import { makeInscripcionUseCases } from '../usecases/inscripcion.usecases.js';
+import { registerInscripcionListener } from '../listeners/inscripcion.listener.js';
+import { makeConsoleNotifier } from '../notifiers/console.notifier.js';
 
 test('Inscripciones valida existencia, duplicados y cupo', async (t) => {
   const app = express();
@@ -102,4 +104,46 @@ test('crear una inscripción emite inscripcion.creada con la inscripción guarda
 
   assert.deepEqual(emittedInscripcion, created);
   assert.deepEqual(await inscripcionDao.getById(created.id), created);
+});
+
+test('el listener deriva inscripcion.creada al notificador de consola', () => {
+  const eventBus = new EventEmitter();
+  const messages = [];
+  const notifier = makeConsoleNotifier({
+    logger: { log: (message) => messages.push(message) },
+  });
+  registerInscripcionListener({
+    eventBus,
+    notifier,
+    logger: { error: assert.fail },
+  });
+
+  eventBus.emit('inscripcion.creada', { id: 3, socioId: 5, claseId: 8 });
+
+  assert.deepEqual(messages, [
+    'Inscripción 3 creada para el socio 5 en la clase 8',
+  ]);
+});
+
+test('el listener captura y registra los errores del notificador', () => {
+  const eventBus = new EventEmitter();
+  const notifierError = new Error('Fallo al notificar');
+  const capturedErrors = [];
+  registerInscripcionListener({
+    eventBus,
+    notifier: {
+      notificarInscripcionCreada() {
+        throw notifierError;
+      },
+    },
+    logger: {
+      error: (message, error) => capturedErrors.push({ message, error }),
+    },
+  });
+
+  assert.doesNotThrow(() => eventBus.emit('inscripcion.creada', { id: 3 }));
+  assert.deepEqual(capturedErrors, [{
+    message: 'Error en el listener inscripcion.creada:',
+    error: notifierError,
+  }]);
 });
