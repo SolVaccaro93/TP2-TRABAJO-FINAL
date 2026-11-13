@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { EventEmitter } from 'node:events';
 import { SocioMemoryDao } from '../dao/memory/socio.memory.dao.js';
 import { makeSocioUseCases } from '../usecases/socio.usecases.js';
 import { makeSocioController } from '../controllers/socio.controller.js';
@@ -13,15 +14,22 @@ import { makeInscripcionController } from '../controllers/inscripcion.controller
 import { makeInscripcionRouter } from '../routes/inscripcion.routes.js';
 
 export const makeContainer = () => {
+  const eventBus = new EventEmitter();
+
   // DAOs
   const socioDao = new SocioMemoryDao();
   const claseDao = new ClaseMemoryDao();
   const inscripcionDao = new InscripcionMemoryDao();
 
   // Casos de uso (inscripciones necesita los DAOs de socio y clase para validar)
-  const socioUseCases = makeSocioUseCases({ socioDao });
-  const claseUseCases = makeClaseUseCases({ claseDao });
-  const inscripcionUseCases = makeInscripcionUseCases({ inscripcionDao, socioDao, claseDao });
+  const socioUseCases = makeSocioUseCases({ socioDao, eventBus });
+  const claseUseCases = makeClaseUseCases({ claseDao, eventBus });
+  const inscripcionUseCases = makeInscripcionUseCases({
+    inscripcionDao,
+    socioDao,
+    claseDao,
+    eventBus,
+  });
 
   // Controllers
   const socioController = makeSocioController({ socioUseCases });

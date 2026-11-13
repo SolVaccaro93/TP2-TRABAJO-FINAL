@@ -53,11 +53,12 @@ flowchart TD
 
 ## Cómo se arma al arrancar
 
-`container/container.js` conecta las capas en sentido inverso al de la request: crea primero lo de abajo y se lo pasa a la capa de arriba. `index.js` monta el router que devuelve. El diagrama muestra Socio; Clase e Inscripción se arman de forma equivalente y se montan en `/clases` y `/inscripciones`.
+`container/container.js` conecta las capas en sentido inverso al de la request: crea primero lo de abajo y se lo pasa a la capa de arriba. También crea un único `EventEmitter` compartido y lo inyecta en los tres casos de uso. `index.js` monta el router que devuelve. El diagrama muestra Socio; Clase e Inscripción se arman de forma equivalente y se montan en `/clases` y `/inscripciones`.
 
 ```mermaid
 flowchart LR
     dao["new SocioMemoryDao()"]
+    eventBus["new EventEmitter()"]
     usecases["makeSocioUseCases"]
     controller["makeSocioController"]
     router["makeSocioRouter"]
@@ -65,12 +66,14 @@ flowchart LR
     index["index.js"]
 
     dao -- "socioDao" --> usecases
+    eventBus -- "eventBus" --> usecases
     usecases -- "socioUseCases" --> controller
     controller -- "socioController" --> router
     router --> principal --> index
 ```
 
 - **Inyección manual:** cada capa recibe lo que necesita en vez de crearlo.
+- **Bus de eventos:** los casos de uso comparten el `EventEmitter` creado por el contenedor.
 - **Cambio de persistencia:** para pasar a SQLite se cambia el DAO en el contenedor, sin tocar los casos de uso.
 - **Una sola llamada:** cada `makeContainer()` crea un DAO nuevo y vacío, por eso `index.js` lo llama una sola vez.
 

@@ -1,6 +1,6 @@
 import { AppError } from '../errors/AppError.js';
 
-export const makeInscripcionUseCases = ({ inscripcionDao, socioDao, claseDao }) => {
+export const makeInscripcionUseCases = ({ inscripcionDao, socioDao, claseDao, eventBus }) => {
   const obtenerOFallar = async (id) => {
     const inscripcion = await inscripcionDao.getById(id);
     if (!inscripcion) {

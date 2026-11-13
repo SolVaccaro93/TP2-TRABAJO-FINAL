@@ -1,6 +1,6 @@
 import { AppError } from '../errors/AppError.js';
 
-export const makeClaseUseCases = ({ claseDao }) => {
+export const makeClaseUseCases = ({ claseDao, eventBus }) => {
   const obtenerOFallar = async (id) => {
     const clase = await claseDao.getById(id);
     if (!clase) throw AppError.notFound(`Clase ${id} no encontrada`, 'CLASE_NOT_FOUND');

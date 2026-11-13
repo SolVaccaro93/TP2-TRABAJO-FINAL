@@ -1,6 +1,6 @@
 import { AppError } from '../errors/AppError.js';
 
-export const makeSocioUseCases = ({ socioDao }) => {
+export const makeSocioUseCases = ({ socioDao, eventBus }) => {
   const obtenerOFallar = async (id) => {
     const socio = await socioDao.getById(id);
     if (!socio) throw AppError.notFound(`Socio ${id} no encontrado`, 'SOCIO_NOT_FOUND');
