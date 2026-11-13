@@ -1,8 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import express from 'express';
 import { makeContainer } from '../container/container.js';
 import { errorHandler } from '../middlewares/errorHandler.js';
+import { ClaseMemoryDao } from '../dao/memory/clase.memory.dao.js';
+import { InscripcionMemoryDao } from '../dao/memory/inscripcion.memory.dao.js';
+import { SocioMemoryDao } from '../dao/memory/socio.memory.dao.js';
+import { makeInscripcionUseCases } from '../usecases/inscripcion.usecases.js';
 
 test('Inscripciones valida existencia, duplicados y cupo', async (t) => {
   const app = express();
@@ -73,4 +78,28 @@ test('Inscripciones valida existencia, duplicados y cupo', async (t) => {
   });
   assert.equal(sinCupo.status, 409);
   assert.equal((await sinCupo.json()).error.code, 'CLASE_SIN_CUPO');
+});
+
+test('crear una inscripción emite inscripcion.creada con la inscripción guardada', async () => {
+  const socioDao = new SocioMemoryDao();
+  const claseDao = new ClaseMemoryDao();
+  const inscripcionDao = new InscripcionMemoryDao();
+  const socio = await socioDao.create({ nombre: 'Ana' });
+  const clase = await claseDao.create({ nombre: 'Yoga', cupoMaximo: 1 });
+  const eventBus = new EventEmitter();
+  const inscripcionUseCases = makeInscripcionUseCases({
+    inscripcionDao,
+    socioDao,
+    claseDao,
+    eventBus,
+  });
+  let emittedInscripcion;
+  eventBus.once('inscripcion.creada', (inscripcion) => {
+    emittedInscripcion = inscripcion;
+  });
+
+  const created = await inscripcionUseCases.crear({ socioId: socio.id, claseId: clase.id });
+
+  assert.deepEqual(emittedInscripcion, created);
+  assert.deepEqual(await inscripcionDao.getById(created.id), created);
 });

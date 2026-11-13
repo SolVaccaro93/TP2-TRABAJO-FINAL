@@ -73,7 +73,7 @@ flowchart LR
 ```
 
 - **Inyección manual:** cada capa recibe lo que necesita en vez de crearlo.
-- **Bus de eventos:** los casos de uso comparten el `EventEmitter` creado por el contenedor.
+- **Bus de eventos:** los casos de uso comparten el `EventEmitter` creado por el contenedor. Al guardar una inscripción, su caso de uso emite `inscripcion.creada` con el registro persistido.
 - **Cambio de persistencia:** para pasar a SQLite se cambia el DAO en el contenedor, sin tocar los casos de uso.
 - **Una sola llamada:** cada `makeContainer()` crea un DAO nuevo y vacío, por eso `index.js` lo llama una sola vez.
 

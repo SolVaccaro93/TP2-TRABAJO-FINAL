@@ -37,7 +37,9 @@ export const makeInscripcionUseCases = ({ inscripcionDao, socioDao, claseDao, ev
         throw AppError.conflict(`La clase ${claseId} no tiene cupo disponible`, 'CLASE_SIN_CUPO');
       }
 
-      return inscripcionDao.create({ socioId, claseId });
+      const inscripcion = await inscripcionDao.create({ socioId, claseId });
+      eventBus.emit('inscripcion.creada', inscripcion);
+      return inscripcion;
     },
 
     eliminar: async (id) => {
