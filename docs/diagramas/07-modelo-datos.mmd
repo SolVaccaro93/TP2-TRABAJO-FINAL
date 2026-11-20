@@ -1,0 +1,25 @@
+erDiagram
+    SOCIO ||--o{ INSCRIPCION : "se inscribe"
+    CLASE ||--o{ INSCRIPCION : "recibe"
+
+    SOCIO {
+        int id PK
+        string nombre "2 a 50 caracteres"
+        string apellido "2 a 50 caracteres"
+        string email UK "único, en minúsculas"
+        string telefono "opcional, hasta 20"
+        boolean activo "por defecto true"
+    }
+
+    CLASE {
+        int id PK
+        string nombre "2 a 100 caracteres"
+        string descripcion "opcional, hasta 500"
+        int cupoMaximo "entero positivo"
+    }
+
+    INSCRIPCION {
+        int id PK
+        int socioId FK
+        int claseId FK
+    }

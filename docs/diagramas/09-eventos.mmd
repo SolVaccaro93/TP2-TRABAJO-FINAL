@@ -1,0 +1,6 @@
+flowchart LR
+    uc["inscripcion.usecases.js<br/>crear()"] -- "emit inscripcion.creada<br/>(inscripción guardada)" --> bus(("eventBus"))
+    bus --> listener["inscripcion.listener.js<br/>try / catch"]
+    listener -- "notificarInscripcionCreada" --> notifier["console.notifier.js"]
+    notifier --> consola[/"Consola del servidor"/]
+    listener -. "si el notificador falla:<br/>logger.error, la inscripción<br/>igual se crea" .-> log[/"console.error"/]

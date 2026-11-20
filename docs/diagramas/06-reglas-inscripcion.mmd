@@ -1,0 +1,14 @@
+flowchart TD
+    inicio(["POST /inscripciones"]) --> forma{"¿socioId y claseId<br/>son enteros positivos?"}
+    forma -- "no" --> e400["400 BAD_REQUEST"]
+    forma -- "sí" --> socio{"¿Existe el socio?"}
+    socio -- "no" --> e404s["404 SOCIO_NOT_FOUND"]
+    socio -- "sí" --> clase{"¿Existe la clase?"}
+    clase -- "no" --> e404c["404 CLASE_NOT_FOUND"]
+    clase -- "sí" --> dup{"¿El socio ya está<br/>inscripto en esa clase?"}
+    dup -- "sí" --> e409d["409 INSCRIPCION_DUPLICADA"]
+    dup -- "no" --> cupo{"¿Inscriptos < cupoMaximo?"}
+    cupo -- "no" --> e409c["409 CLASE_SIN_CUPO"]
+    cupo -- "sí" --> crear["Guarda la inscripción"]
+    crear --> evento["Emite inscripcion.creada"]
+    evento --> ok(["201 Created"])

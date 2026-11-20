@@ -1,0 +1,14 @@
+flowchart LR
+    env[".env<br/>PERSISTENCE_TYPE"] --> factory{"dao.factory.js<br/>makeDaos()"}
+
+    factory -- "memory" --> m1["SocioMemoryDao"]
+    factory -- "memory" --> m2["ClaseMemoryDao"]
+    factory -- "memory" --> m3["InscripcionMemoryDao"]
+    m1 & m2 & m3 --> arrays[("Arrays en memoria<br/>se pierden al reiniciar")]
+
+    factory -- "sqlite" --> s1["SocioSqliteDao"]
+    factory -- "sqlite" --> s2["ClaseSqliteDao"]
+    factory -- "sqlite" --> s3["InscripcionSqliteDao"]
+    s1 & s2 & s3 --> models["dao/models/index.js<br/>Sequelize"] --> file[("fitjs.sqlite<br/>persiste")]
+
+    m1 & m2 & m3 & s1 & s2 & s3 -.-> contrato["Mismo contrato<br/>que usan los casos de uso"]

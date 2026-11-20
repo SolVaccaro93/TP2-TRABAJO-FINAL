@@ -1,0 +1,6 @@
+flowchart TD
+    origen["Error en cualquier capa"] --> tipo{"¿Qué tipo de error es?"}
+    tipo -- "instanceof AppError" --> app["status y code del AppError<br/>400, 404 o 409"]
+    tipo -- "entity.parse.failed<br/>(lo lanza express.json)" --> json["400 INVALID_JSON"]
+    tipo -- "cualquier otro" --> bug["console.error(err)<br/>500 INTERNAL_ERROR<br/>sin detalles internos"]
+    app & json & bug --> resp["{ error: { code, message, details } }"]

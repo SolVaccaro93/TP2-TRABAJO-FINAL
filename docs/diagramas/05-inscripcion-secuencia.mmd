@@ -1,0 +1,39 @@
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant V as validate.js
+    participant U as inscripcion.usecases.js
+    participant SD as socioDao
+    participant CD as claseDao
+    participant ID as inscripcionDao
+    participant B as eventBus
+    participant L as inscripcion.listener.js
+    participant N as console.notifier.js
+
+    C->>V: POST /inscripciones {"socioId":1,"claseId":2}
+    V->>V: socioId y claseId enteros positivos
+    V->>U: crear({ socioId, claseId })
+
+    U->>SD: getById(socioId)
+    SD-->>U: socio o null
+    Note over U: null: 404 SOCIO_NOT_FOUND
+
+    U->>CD: getById(claseId)
+    CD-->>U: clase o null
+    Note over U: null: 404 CLASE_NOT_FOUND
+
+    U->>ID: getBySocioAndClase(socioId, claseId)
+    ID-->>U: inscripción o null
+    Note over U: existe: 409 INSCRIPCION_DUPLICADA
+
+    U->>ID: countByClase(claseId)
+    ID-->>U: cantidad de inscriptos
+    Note over U: inscriptos >= cupoMaximo: 409 CLASE_SIN_CUPO
+
+    U->>ID: create({ socioId, claseId })
+    ID-->>U: inscripción con id
+    U->>B: emit("inscripcion.creada", inscripcion)
+    B->>L: onInscripcionCreada(inscripcion)
+    L->>N: notificarInscripcionCreada(inscripcion)
+    N-->>N: console.log("Inscripción 3 creada para el socio 1 en la clase 2")
+    U-->>C: 201 Created + inscripción

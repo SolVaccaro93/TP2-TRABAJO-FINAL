@@ -4,6 +4,8 @@ Fit.js es una API REST en capas para gestionar un gimnasio. Cada request atravie
 
 Para instalar, ejecutar y probar el proyecto, ver el [README](../README.md). Versión visual: [tablero en Miro](https://miro.com/app/board/uXjVERWaj4Y=/).
 
+Los diagramas están como imágenes en [docs/diagramas/](diagramas/), así se ven en cualquier editor. El código Mermaid de cada diagrama está en el archivo `.mmd` del mismo nombre: para modificar uno, editá el `.mmd`, pegalo en [mermaid.live](https://mermaid.live) y exportá la imagen con *Actions → Export SVG*, reemplazando el `.svg`.
+
 ## Índice
 
 1. [Vista general](#vista-general)
@@ -23,66 +25,13 @@ Para instalar, ejecutar y probar el proyecto, ver el [README](../README.md). Ver
 
 Las flechas indican quién llama a quién. Ninguna capa conoce a las que están por encima: los casos de uso no saben de HTTP y los DAOs no saben de reglas de negocio.
 
-```mermaid
-flowchart TD
-    cliente["Cliente<br/>Swagger, navegador, curl o tests"]
-
-    subgraph http["Capa HTTP"]
-        index["index.js<br/>express.json, Swagger, notFound, errorHandler"]
-        routes["routes/<br/>verbo + URL"]
-        validate["middlewares/validate.js<br/>Zod: params y body"]
-        controllers["controllers/<br/>req a caso de uso y status"]
-    end
-
-    subgraph negocio["Capa de negocio"]
-        usecases["usecases/<br/>reglas de negocio"]
-        bus(("EventEmitter<br/>bus de eventos"))
-        listener["listeners/<br/>inscripcion.listener.js"]
-        notifier["notifiers/<br/>console.notifier.js"]
-    end
-
-    subgraph datos["Capa de datos"]
-        factory["dao/dao.factory.js<br/>elige memoria o SQLite"]
-        memory["dao/memory/<br/>arrays en memoria"]
-        sqlite["dao/sqlite/ + dao/models/<br/>Sequelize"]
-        db[("fitjs.sqlite")]
-    end
-
-    errores["errors/AppError.js<br/>+ middlewares/errorHandler.js"]
-
-    cliente --> index --> routes --> validate --> controllers --> usecases
-    usecases --> memory
-    usecases --> sqlite --> db
-    factory -. "crea" .-> memory
-    factory -. "crea" .-> sqlite
-    usecases -- "inscripcion.creada" --> bus --> listener --> notifier
-    validate -- "400" --> errores
-    usecases -- "404 / 409" --> errores
-    errores -. "JSON de error" .-> cliente
-    controllers -. "200 / 201 / 204" .-> cliente
-```
+![Vista general de las capas](diagramas/01-vista-general.svg)
 
 ## Arranque del servidor
 
 Qué pasa cuando se ejecuta `npm run dev` o `npm start`:
 
-```mermaid
-flowchart TD
-    inicio(["npm run dev / npm start"]) --> config["config/config.js<br/>lee .env: PORT, PERSISTENCE_TYPE, DB_STORAGE"]
-    config --> express["index.js crea la app<br/>express.json()"]
-    express --> swagger["Lee openapi.yaml<br/>monta Swagger en /api-docs"]
-    swagger --> factory{"makeDaos(PERSISTENCE_TYPE)"}
-    factory -- "memory" --> mem["DAOs en memoria<br/>arrancan vacíos"]
-    factory -- "sqlite" --> initdb["Importa Sequelize y los modelos<br/>initDb(): crea las tablas si no existen"]
-    factory -- "otro valor" --> error(["Error: PERSISTENCE_TYPE inválido<br/>el servidor no arranca"])
-    initdb --> sqlitedaos["DAOs SQLite"]
-    sqlitedaos --> seed["seed(daos)<br/>carga datos de ejemplo en tablas vacías"]
-    mem --> container
-    seed --> container["makeContainer({ daos })<br/>bus de eventos, listener, casos de uso,<br/>controllers y routers"]
-    container --> montar["app.use(router)<br/>/, /socios, /clases, /inscripciones"]
-    montar --> finales["app.use(notFound)<br/>app.use(errorHandler)"]
-    finales --> listen(["app.listen(PORT)<br/>Fit.js escuchando en http://localhost:3000"])
-```
+![Arranque del servidor](diagramas/02-arranque.svg)
 
 El orden en `index.js` importa: `notFound` y `errorHandler` van **al final** para atrapar lo que ninguna ruta atendió y cualquier error lanzado antes.
 
@@ -90,48 +39,7 @@ El orden en `index.js` importa: `notFound` y `errorHandler` van **al final** par
 
 `container/container.js` conecta las capas en sentido inverso al de la request: crea primero lo de abajo y se lo pasa a la capa de arriba (inyección de dependencias manual). Recibe los DAOs ya creados por `makeDaos()`; si se llama sin argumentos, usa DAOs en memoria (así lo usan los tests).
 
-```mermaid
-flowchart LR
-    subgraph daos["DAOs (de makeDaos)"]
-        socioDao["socioDao"]
-        claseDao["claseDao"]
-        inscripcionDao["inscripcionDao"]
-    end
-
-    eventBus(("eventBus"))
-    notifier["makeConsoleNotifier()"]
-    listener["registerInscripcionListener"]
-
-    socioUC["makeSocioUseCases"]
-    claseUC["makeClaseUseCases"]
-    inscUC["makeInscripcionUseCases"]
-
-    socioCtrl["makeSocioController"]
-    claseCtrl["makeClaseController"]
-    inscCtrl["makeInscripcionController"]
-
-    socioR["makeSocioRouter"]
-    claseR["makeClaseRouter"]
-    inscR["makeInscripcionRouter"]
-
-    router["Router principal<br/>GET /<br/>/socios, /clases, /inscripciones"]
-
-    eventBus --> listener
-    notifier --> listener
-
-    socioDao --> socioUC
-    claseDao --> claseUC
-    inscripcionDao --> inscUC
-    socioDao -- "valida existencia" --> inscUC
-    claseDao -- "valida existencia y cupo" --> inscUC
-    eventBus --> socioUC
-    eventBus --> claseUC
-    eventBus --> inscUC
-
-    socioUC --> socioCtrl --> socioR --> router
-    claseUC --> claseCtrl --> claseR --> router
-    inscUC --> inscCtrl --> inscR --> router
-```
+![Armado del contenedor](diagramas/03-contenedor.svg)
 
 Inscripción es el único caso de uso que recibe DAOs de otros recursos, porque necesita consultar socios y clases para aplicar sus reglas.
 
@@ -139,111 +47,19 @@ Inscripción es el único caso de uso que recibe DAOs de otros recursos, porque 
 
 Ejemplo con `POST /socios`. Clase e Inscripción siguen el mismo recorrido con sus propios archivos.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Cliente
-    participant I as index.js
-    participant R as socio.routes.js
-    participant V as validate.js
-    participant Ct as socio.controller.js
-    participant U as socio.usecases.js
-    participant D as socioDao
-    participant E as errorHandler.js
-
-    C->>I: POST /socios {"nombre","apellido","email"}
-    I->>I: express.json() parsea el body
-    alt JSON mal formado
-        I->>E: error entity.parse.failed
-        E-->>C: 400 INVALID_JSON
-    end
-    I->>R: router del contenedor
-    R->>V: validate({ body: crearSocioSchema })
-    alt datos inválidos
-        V->>E: AppError.badRequest(details)
-        E-->>C: 400 BAD_REQUEST con details por campo
-    end
-    V->>V: normaliza (trim, email en minúsculas, activo=true)
-    V->>Ct: req.body limpio
-    Ct->>U: crear(req.body)
-    U->>D: getByEmail(email)
-    D-->>U: socio o null
-    alt el email ya existe
-        U->>E: AppError.conflict EMAIL_DUPLICADO
-        E-->>C: 409 EMAIL_DUPLICADO
-    end
-    U->>D: create(data)
-    D-->>U: socio con id
-    U-->>Ct: socio
-    Ct-->>C: 201 Created + socio
-```
+![Flujo de POST /socios](diagramas/04-request-socio.svg)
 
 ## Crear una inscripción paso a paso
 
 Es el flujo más completo: valida contra tres DAOs, aplica tres reglas y dispara un evento.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant C as Cliente
-    participant V as validate.js
-    participant U as inscripcion.usecases.js
-    participant SD as socioDao
-    participant CD as claseDao
-    participant ID as inscripcionDao
-    participant B as eventBus
-    participant L as inscripcion.listener.js
-    participant N as console.notifier.js
-
-    C->>V: POST /inscripciones {"socioId":1,"claseId":2}
-    V->>V: socioId y claseId enteros positivos
-    V->>U: crear({ socioId, claseId })
-
-    U->>SD: getById(socioId)
-    SD-->>U: socio o null
-    Note over U: null: 404 SOCIO_NOT_FOUND
-
-    U->>CD: getById(claseId)
-    CD-->>U: clase o null
-    Note over U: null: 404 CLASE_NOT_FOUND
-
-    U->>ID: getBySocioAndClase(socioId, claseId)
-    ID-->>U: inscripción o null
-    Note over U: existe: 409 INSCRIPCION_DUPLICADA
-
-    U->>ID: countByClase(claseId)
-    ID-->>U: cantidad de inscriptos
-    Note over U: inscriptos >= cupoMaximo: 409 CLASE_SIN_CUPO
-
-    U->>ID: create({ socioId, claseId })
-    ID-->>U: inscripción con id
-    U->>B: emit("inscripcion.creada", inscripcion)
-    B->>L: onInscripcionCreada(inscripcion)
-    L->>N: notificarInscripcionCreada(inscripcion)
-    N-->>N: console.log("Inscripción 3 creada para el socio 1 en la clase 2")
-    U-->>C: 201 Created + inscripción
-```
+![Creación de una inscripción](diagramas/05-inscripcion-secuencia.svg)
 
 ## Reglas de inscripción
 
 Las reglas se evalúan en este orden; la primera que falla corta el flujo.
 
-```mermaid
-flowchart TD
-    inicio(["POST /inscripciones"]) --> forma{"¿socioId y claseId<br/>son enteros positivos?"}
-    forma -- "no" --> e400["400 BAD_REQUEST"]
-    forma -- "sí" --> socio{"¿Existe el socio?"}
-    socio -- "no" --> e404s["404 SOCIO_NOT_FOUND"]
-    socio -- "sí" --> clase{"¿Existe la clase?"}
-    clase -- "no" --> e404c["404 CLASE_NOT_FOUND"]
-    clase -- "sí" --> dup{"¿El socio ya está<br/>inscripto en esa clase?"}
-    dup -- "sí" --> e409d["409 INSCRIPCION_DUPLICADA"]
-    dup -- "no" --> cupo{"¿Inscriptos < cupoMaximo?"}
-    cupo -- "no" --> e409c["409 CLASE_SIN_CUPO"]
-    cupo -- "sí" --> crear["Guarda la inscripción"]
-    crear --> evento["Emite inscripcion.creada"]
-    evento --> ok(["201 Created"])
-```
+![Reglas de inscripción](diagramas/06-reglas-inscripcion.svg)
 
 Reglas de los otros recursos:
 
@@ -258,33 +74,7 @@ Reglas de los otros recursos:
 
 Un socio puede tener muchas inscripciones y una clase puede tener muchas inscripciones. La inscripción es la tabla intermedia entre ambos.
 
-```mermaid
-erDiagram
-    SOCIO ||--o{ INSCRIPCION : "se inscribe"
-    CLASE ||--o{ INSCRIPCION : "recibe"
-
-    SOCIO {
-        int id PK
-        string nombre "2 a 50 caracteres"
-        string apellido "2 a 50 caracteres"
-        string email UK "único, en minúsculas"
-        string telefono "opcional, hasta 20"
-        boolean activo "por defecto true"
-    }
-
-    CLASE {
-        int id PK
-        string nombre "2 a 100 caracteres"
-        string descripcion "opcional, hasta 500"
-        int cupoMaximo "entero positivo"
-    }
-
-    INSCRIPCION {
-        int id PK
-        int socioId FK
-        int claseId FK
-    }
-```
+![Modelo de datos](diagramas/07-modelo-datos.svg)
 
 En SQLite las relaciones están definidas en `dao/models/index.js` con `onDelete: 'CASCADE'`: al borrar un socio o una clase se borran sus inscripciones. En memoria no hay cascada.
 
@@ -292,22 +82,7 @@ En SQLite las relaciones están definidas en `dao/models/index.js` con `onDelete
 
 Los casos de uso dependen de un **contrato** (los métodos del DAO), no de una implementación. `dao/dao.factory.js` elige cuál crear según `PERSISTENCE_TYPE`.
 
-```mermaid
-flowchart LR
-    env[".env<br/>PERSISTENCE_TYPE"] --> factory{"dao.factory.js<br/>makeDaos()"}
-
-    factory -- "memory" --> m1["SocioMemoryDao"]
-    factory -- "memory" --> m2["ClaseMemoryDao"]
-    factory -- "memory" --> m3["InscripcionMemoryDao"]
-    m1 & m2 & m3 --> arrays[("Arrays en memoria<br/>se pierden al reiniciar")]
-
-    factory -- "sqlite" --> s1["SocioSqliteDao"]
-    factory -- "sqlite" --> s2["ClaseSqliteDao"]
-    factory -- "sqlite" --> s3["InscripcionSqliteDao"]
-    s1 & s2 & s3 --> models["dao/models/index.js<br/>Sequelize"] --> file[("fitjs.sqlite<br/>persiste")]
-
-    m1 & m2 & m3 & s1 & s2 & s3 -.-> contrato["Mismo contrato<br/>que usan los casos de uso"]
-```
+![Persistencia intercambiable](diagramas/08-persistencia.svg)
 
 | Método | Socio | Clase | Inscripción | Devuelve |
 | --- | :-: | :-: | :-: | --- |
@@ -328,14 +103,7 @@ Con SQLite, `dao/seed.js` carga datos de ejemplo al arrancar, solo en las tablas
 
 El contenedor crea **un único** `EventEmitter` y lo comparte con todos los casos de uso. Hoy se usa un evento:
 
-```mermaid
-flowchart LR
-    uc["inscripcion.usecases.js<br/>crear()"] -- "emit inscripcion.creada<br/>(inscripción guardada)" --> bus(("eventBus"))
-    bus --> listener["inscripcion.listener.js<br/>try / catch"]
-    listener -- "notificarInscripcionCreada" --> notifier["console.notifier.js"]
-    notifier --> consola[/"Consola del servidor"/]
-    listener -. "si el notificador falla:<br/>logger.error, la inscripción<br/>igual se crea" .-> log[/"console.error"/]
-```
+![Eventos y notificaciones](diagramas/09-eventos.svg)
 
 - El caso de uso no sabe quién escucha: solo emite el evento después de guardar.
 - El listener aísla los errores del notificador para que no rompan la request.
@@ -346,14 +114,7 @@ flowchart LR
 
 Todos los errores terminan en `middlewares/errorHandler.js`, que responde siempre `{ error: { code, message, details } }`.
 
-```mermaid
-flowchart TD
-    origen["Error en cualquier capa"] --> tipo{"¿Qué tipo de error es?"}
-    tipo -- "instanceof AppError" --> app["status y code del AppError<br/>400, 404 o 409"]
-    tipo -- "entity.parse.failed<br/>(lo lanza express.json)" --> json["400 INVALID_JSON"]
-    tipo -- "cualquier otro" --> bug["console.error(err)<br/>500 INTERNAL_ERROR<br/>sin detalles internos"]
-    app & json & bug --> resp["{ error: { code, message, details } }"]
-```
+![Manejo de errores](diagramas/10-errores.svg)
 
 | Quién lo genera | Error |
 | --- | --- |

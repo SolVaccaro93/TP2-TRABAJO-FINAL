@@ -1,0 +1,36 @@
+flowchart TD
+    cliente["Cliente<br/>Swagger, navegador, curl o tests"]
+
+    subgraph http["Capa HTTP"]
+        index["index.js<br/>express.json, Swagger, notFound, errorHandler"]
+        routes["routes/<br/>verbo + URL"]
+        validate["middlewares/validate.js<br/>Zod: params y body"]
+        controllers["controllers/<br/>req a caso de uso y status"]
+    end
+
+    subgraph negocio["Capa de negocio"]
+        usecases["usecases/<br/>reglas de negocio"]
+        bus(("EventEmitter<br/>bus de eventos"))
+        listener["listeners/<br/>inscripcion.listener.js"]
+        notifier["notifiers/<br/>console.notifier.js"]
+    end
+
+    subgraph datos["Capa de datos"]
+        factory["dao/dao.factory.js<br/>elige memoria o SQLite"]
+        memory["dao/memory/<br/>arrays en memoria"]
+        sqlite["dao/sqlite/ + dao/models/<br/>Sequelize"]
+        db[("fitjs.sqlite")]
+    end
+
+    errores["errors/AppError.js<br/>middlewares/errorHandler.js"]
+
+    cliente --> index --> routes --> validate --> controllers --> usecases
+    usecases --> memory
+    usecases --> sqlite --> db
+    factory -. "crea" .-> memory
+    factory -. "crea" .-> sqlite
+    usecases -- "inscripcion.creada" --> bus --> listener --> notifier
+    validate -- "400" --> errores
+    usecases -- "404 / 409" --> errores
+    errores -. "JSON de error" .-> cliente
+    controllers -. "200 / 201 / 204" .-> cliente

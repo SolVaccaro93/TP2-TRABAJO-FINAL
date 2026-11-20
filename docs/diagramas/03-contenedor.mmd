@@ -1,0 +1,40 @@
+flowchart LR
+    subgraph daos["DAOs (de makeDaos)"]
+        socioDao["socioDao"]
+        claseDao["claseDao"]
+        inscripcionDao["inscripcionDao"]
+    end
+
+    eventBus(("eventBus"))
+    notifier["makeConsoleNotifier()"]
+    listener["registerInscripcionListener"]
+
+    socioUC["makeSocioUseCases"]
+    claseUC["makeClaseUseCases"]
+    inscUC["makeInscripcionUseCases"]
+
+    socioCtrl["makeSocioController"]
+    claseCtrl["makeClaseController"]
+    inscCtrl["makeInscripcionController"]
+
+    socioR["makeSocioRouter"]
+    claseR["makeClaseRouter"]
+    inscR["makeInscripcionRouter"]
+
+    router["Router principal<br/>GET /<br/>/socios, /clases, /inscripciones"]
+
+    eventBus --> listener
+    notifier --> listener
+
+    socioDao --> socioUC
+    claseDao --> claseUC
+    inscripcionDao --> inscUC
+    socioDao -- "valida existencia" --> inscUC
+    claseDao -- "valida existencia y cupo" --> inscUC
+    eventBus --> socioUC
+    eventBus --> claseUC
+    eventBus --> inscUC
+
+    socioUC --> socioCtrl --> socioR --> router
+    claseUC --> claseCtrl --> claseR --> router
+    inscUC --> inscCtrl --> inscR --> router

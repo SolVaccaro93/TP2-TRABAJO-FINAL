@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    participant C as Cliente
+    participant I as index.js
+    participant R as socio.routes.js
+    participant V as validate.js
+    participant Ct as socio.controller.js
+    participant U as socio.usecases.js
+    participant D as socioDao
+    participant E as errorHandler.js
+
+    C->>I: POST /socios {"nombre","apellido","email"}
+    I->>I: express.json() parsea el body
+    alt JSON mal formado
+        I->>E: error entity.parse.failed
+        E-->>C: 400 INVALID_JSON
+    end
+    I->>R: router del contenedor
+    R->>V: validate({ body: crearSocioSchema })
+    alt datos inválidos
+        V->>E: AppError.badRequest(details)
+        E-->>C: 400 BAD_REQUEST con details por campo
+    end
+    V->>V: normaliza (trim, email en minúsculas, activo=true)
+    V->>Ct: req.body limpio
+    Ct->>U: crear(req.body)
+    U->>D: getByEmail(email)
+    D-->>U: socio o null
+    alt el email ya existe
+        U->>E: AppError.conflict EMAIL_DUPLICADO
+        E-->>C: 409 EMAIL_DUPLICADO
+    end
+    U->>D: create(data)
+    D-->>U: socio con id
+    U-->>Ct: socio
+    Ct-->>C: 201 Created + socio

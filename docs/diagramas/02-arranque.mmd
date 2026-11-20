@@ -1,0 +1,15 @@
+flowchart TD
+    inicio(["npm run dev / npm start"]) --> config["config/config.js<br/>lee .env: PORT, PERSISTENCE_TYPE, DB_STORAGE"]
+    config --> express["index.js crea la app<br/>express.json()"]
+    express --> swagger["Lee openapi.yaml<br/>monta Swagger en /api-docs"]
+    swagger --> factory{"makeDaos(PERSISTENCE_TYPE)"}
+    factory -- "memory" --> mem["DAOs en memoria<br/>arrancan vacíos"]
+    factory -- "sqlite" --> initdb["Importa Sequelize y los modelos<br/>initDb(): crea las tablas si no existen"]
+    factory -- "otro valor" --> error(["Error: PERSISTENCE_TYPE inválido<br/>el servidor no arranca"])
+    initdb --> sqlitedaos["DAOs SQLite"]
+    sqlitedaos --> seed["seed(daos)<br/>carga datos de ejemplo en tablas vacías"]
+    mem --> container
+    seed --> container["makeContainer({ daos })<br/>bus de eventos, listener, casos de uso,<br/>controllers y routers"]
+    container --> montar["app.use(router)<br/>/, /socios, /clases, /inscripciones"]
+    montar --> finales["app.use(notFound)<br/>app.use(errorHandler)"]
+    finales --> listen(["app.listen(PORT)<br/>Fit.js escuchando en http://localhost:3000"])
