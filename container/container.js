@@ -15,15 +15,20 @@ import { makeInscripcionUseCases } from '../usecases/inscripcion.usecases.js';
 import { makeInscripcionController } from '../controllers/inscripcion.controller.js';
 import { makeInscripcionRouter } from '../routes/inscripcion.routes.js';
 
-export const makeContainer = () => {
+const makeMemoryDaos = () => ({
+  socioDao: new SocioMemoryDao(),
+  claseDao: new ClaseMemoryDao(),
+  inscripcionDao: new InscripcionMemoryDao(),
+});
+
+// daos viene de makeDaos() (dao.factory.js); sin argumentos usa memoria
+export const makeContainer = ({ daos = makeMemoryDaos() } = {}) => {
   const eventBus = new EventEmitter();
   const notifier = makeConsoleNotifier();
   registerInscripcionListener({ eventBus, notifier });
 
   // DAOs
-  const socioDao = new SocioMemoryDao();
-  const claseDao = new ClaseMemoryDao();
-  const inscripcionDao = new InscripcionMemoryDao();
+  const { socioDao, claseDao, inscripcionDao } = daos;
 
   // Casos de uso (inscripciones necesita los DAOs de socio y clase para validar)
   const socioUseCases = makeSocioUseCases({ socioDao, eventBus });
