@@ -1,0 +1,754 @@
+openapi: "3.0.3"
+info:
+  title: Fit.js API
+  version: "1.0.0"
+  description: "API REST para gestionar socios, clases e inscripciones de un gimnasio."
+servers:
+  - url: "/"
+paths:
+  "/":
+    get:
+      tags:
+        - API
+      summary: Consultar los recursos de la API
+      operationId: obtenerInfoApi
+      responses:
+        "200":
+          description: "Información de la API"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/InfoApi"
+              example:
+                nombre: Fit.js API
+                recursos:
+                  - "/socios"
+                  - "/clases"
+                  - "/inscripciones"
+  "/socios":
+    get:
+      tags:
+        - Socios
+      summary: Listar socios
+      operationId: listarSocios
+      responses:
+        "200":
+          description: Lista de socios
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Socio"
+              example:
+                - id: 1
+                  nombre: Ana
+                  apellido: "García"
+                  email: "ana@example.com"
+                  telefono: "5551234567"
+                  activo: true
+    post:
+      tags:
+        - Socios
+      summary: Crear socio
+      operationId: crearSocio
+      responses:
+        "201":
+          description: Socio creado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Socio"
+              example:
+                id: 1
+                nombre: Ana
+                apellido: "García"
+                email: "ana@example.com"
+                telefono: "5551234567"
+                activo: true
+        "400":
+          $ref: "#/components/responses/CuerpoInvalido"
+        "409":
+          $ref: "#/components/responses/EmailDuplicado"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/CrearSocio"
+            example:
+              nombre: Ana
+              apellido: "García"
+              email: "ana@example.com"
+              telefono: "5551234567"
+  "/socios/{id}":
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Socios
+      summary: Obtener socio
+      operationId: obtenerSocio
+      responses:
+        "200":
+          description: Socio encontrado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Socio"
+              example:
+                id: 1
+                nombre: Ana
+                apellido: "García"
+                email: "ana@example.com"
+                telefono: "5551234567"
+                activo: true
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/SocioNoEncontrado"
+    patch:
+      tags:
+        - Socios
+      summary: Actualizar socio
+      operationId: actualizarSocio
+      responses:
+        "200":
+          description: Socio actualizado
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Socio"
+              example:
+                id: 1
+                nombre: Ana
+                apellido: "García"
+                email: "ana@example.com"
+                telefono: "5551234567"
+                activo: false
+        "400":
+          $ref: "#/components/responses/ActualizacionInvalida"
+        "404":
+          $ref: "#/components/responses/SocioNoEncontrado"
+        "409":
+          $ref: "#/components/responses/EmailDuplicado"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/ActualizarSocio"
+            example:
+              activo: false
+    delete:
+      tags:
+        - Socios
+      summary: Eliminar socio
+      operationId: eliminarSocio
+      responses:
+        "204":
+          description: Recurso eliminado.
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/SocioNoEncontrado"
+  "/clases":
+    get:
+      tags:
+        - Clases
+      summary: Listar clases
+      operationId: listarClases
+      responses:
+        "200":
+          description: Lista de clases
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Clase"
+              example:
+                - id: 1
+                  nombre: Yoga
+                  descripcion: Yoga para principiantes
+                  cupoMaximo: 12
+    post:
+      tags:
+        - Clases
+      summary: Crear clase
+      operationId: crearClase
+      responses:
+        "201":
+          description: Clase creada
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Clase"
+              example:
+                id: 1
+                nombre: Yoga
+                descripcion: Yoga para principiantes
+                cupoMaximo: 12
+        "400":
+          $ref: "#/components/responses/CuerpoInvalido"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/CrearClase"
+            example:
+              nombre: Yoga
+              descripcion: Yoga para principiantes
+              cupoMaximo: 12
+  "/clases/{id}":
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Clases
+      summary: Obtener clase
+      operationId: obtenerClase
+      responses:
+        "200":
+          description: Clase encontrada
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Clase"
+              example:
+                id: 1
+                nombre: Yoga
+                descripcion: Yoga para principiantes
+                cupoMaximo: 12
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/ClaseNoEncontrado"
+    patch:
+      tags:
+        - Clases
+      summary: Actualizar clase
+      operationId: actualizarClase
+      responses:
+        "200":
+          description: Clase actualizada
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Clase"
+              example:
+                id: 1
+                nombre: Yoga
+                descripcion: Yoga para principiantes
+                cupoMaximo: 15
+        "400":
+          $ref: "#/components/responses/ActualizacionInvalida"
+        "404":
+          $ref: "#/components/responses/ClaseNoEncontrado"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/ActualizarClase"
+            example:
+              cupoMaximo: 15
+    delete:
+      tags:
+        - Clases
+      summary: Eliminar clase
+      operationId: eliminarClase
+      responses:
+        "204":
+          description: Recurso eliminado.
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/ClaseNoEncontrado"
+  "/inscripciones":
+    get:
+      tags:
+        - Inscripciones
+      summary: Listar inscripciones
+      operationId: listarInscripciones
+      responses:
+        "200":
+          description: Lista de inscripciones
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Inscripcion"
+              example:
+                - id: 1
+                  socioId: 1
+                  claseId: 1
+    post:
+      tags:
+        - Inscripciones
+      summary: "Crear inscripción"
+      operationId: crearInscripcion
+      responses:
+        "201":
+          description: "Inscripción creada"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Inscripcion"
+              example:
+                id: 1
+                socioId: 1
+                claseId: 1
+        "400":
+          $ref: "#/components/responses/CuerpoInvalido"
+        "404":
+          $ref: "#/components/responses/ReferenciaNoEncontrada"
+        "409":
+          $ref: "#/components/responses/ConflictoInscripcion"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/CrearInscripcion"
+            example:
+              socioId: 1
+              claseId: 1
+  "/inscripciones/{id}":
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Inscripciones
+      summary: "Obtener inscripción"
+      operationId: obtenerInscripcion
+      responses:
+        "200":
+          description: "Inscripción encontrada"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Inscripcion"
+              example:
+                id: 1
+                socioId: 1
+                claseId: 1
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/InscripcionNoEncontrado"
+    delete:
+      tags:
+        - Inscripciones
+      summary: "Eliminar inscripción"
+      operationId: eliminarInscripcion
+      responses:
+        "204":
+          description: Recurso eliminado.
+        "400":
+          $ref: "#/components/responses/IdInvalido"
+        "404":
+          $ref: "#/components/responses/InscripcionNoEncontrado"
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Identificador del recurso.
+      schema:
+        $ref: "#/components/schemas/Id"
+  responses:
+    IdInvalido:
+      description: El ID debe ser un entero positivo.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            idInvalido:
+              value:
+                error:
+                  code: BAD_REQUEST
+                  message: "Datos inválidos en params"
+                  details:
+                    - field: id
+                      message: "Too small: expected number to be >0"
+    CuerpoInvalido:
+      description: El cuerpo no cumple el esquema o contiene JSON mal formado.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            cuerpoInvalido:
+              value:
+                error:
+                  code: BAD_REQUEST
+                  message: "Datos inválidos en body"
+                  details:
+                    - field: ""
+                      message: "Invalid input: expected object, received undefined"
+            jsonInvalido:
+              value:
+                error:
+                  code: INVALID_JSON
+                  message: "El body no es un JSON válido"
+                  details: null
+    ActualizacionInvalida:
+      description: "ID inválido o cuerpo inválido. Enviá al menos un campo reconocido."
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            idInvalido:
+              value:
+                error:
+                  code: BAD_REQUEST
+                  message: "Datos inválidos en params"
+                  details:
+                    - field: id
+                      message: "Too small: expected number to be >0"
+            cuerpoVacio:
+              value:
+                error:
+                  code: BAD_REQUEST
+                  message: "Datos inválidos en body"
+                  details:
+                    - field: ""
+                      message: Debe enviar al menos un campo para actualizar
+            jsonInvalido:
+              value:
+                error:
+                  code: INVALID_JSON
+                  message: "El body no es un JSON válido"
+                  details: null
+    EmailDuplicado:
+      description: Otro socio ya tiene ese email.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            emailDuplicado:
+              value:
+                error:
+                  code: EMAIL_DUPLICADO
+                  message: "Ya existe un socio con el email ana@example.com"
+                  details: null
+    ReferenciaNoEncontrada:
+      description: El socio o la clase no existen.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            socioNoEncontrado:
+              value:
+                error:
+                  code: SOCIO_NOT_FOUND
+                  message: Socio 1 no encontrado
+                  details: null
+            claseNoEncontrada:
+              value:
+                error:
+                  code: CLASE_NOT_FOUND
+                  message: Clase 1 no encontrada
+                  details: null
+    ConflictoInscripcion:
+      description: "El socio ya está inscripto en la clase o la clase no tiene cupo."
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            inscripcionDuplicada:
+              value:
+                error:
+                  code: INSCRIPCION_DUPLICADA
+                  message: "El socio 1 ya está inscripto en la clase 1"
+                  details: null
+            claseSinCupo:
+              value:
+                error:
+                  code: CLASE_SIN_CUPO
+                  message: La clase 1 no tiene cupo disponible
+                  details: null
+    SocioNoEncontrado:
+      description: No existe el recurso con el ID indicado.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            noEncontrado:
+              value:
+                error:
+                  code: SOCIO_NOT_FOUND
+                  message: Socio 1 no encontrado
+                  details: null
+    ClaseNoEncontrado:
+      description: No existe el recurso con el ID indicado.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            noEncontrado:
+              value:
+                error:
+                  code: CLASE_NOT_FOUND
+                  message: Clase 1 no encontrada
+                  details: null
+    InscripcionNoEncontrado:
+      description: No existe el recurso con el ID indicado.
+      content:
+        "application/json":
+          schema:
+            $ref: "#/components/schemas/ErrorApi"
+          examples:
+            noEncontrado:
+              value:
+                error:
+                  code: INSCRIPCION_NOT_FOUND
+                  message: "Inscripción 1 no encontrada"
+                  details: null
+  schemas:
+    Id:
+      type: integer
+      minimum: 1
+      example: 1
+    InfoApi:
+      type: object
+      required:
+        - nombre
+        - recursos
+      properties:
+        nombre:
+          type: string
+        recursos:
+          type: array
+          items:
+            type: string
+    DetalleError:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ErrorApi:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              nullable: true
+              items:
+                $ref: "#/components/schemas/DetalleError"
+    CrearSocio:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: Ana
+        apellido:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "García"
+        email:
+          type: string
+          format: email
+          description: "Se recortan los espacios externos y se convierte a minúsculas."
+          example: "ana@example.com"
+        telefono:
+          type: string
+          maxLength: 20
+          example: "5551234567"
+        activo:
+          type: boolean
+          example: true
+          default: true
+      required:
+        - nombre
+        - apellido
+        - email
+    Socio:
+      type: object
+      required:
+        - id
+        - nombre
+        - apellido
+        - email
+        - activo
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: Ana
+        apellido:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "García"
+        email:
+          type: string
+          format: email
+          description: "Se recortan los espacios externos y se convierte a minúsculas."
+          example: "ana@example.com"
+        telefono:
+          type: string
+          maxLength: 20
+          example: "5551234567"
+        activo:
+          type: boolean
+          example: true
+    ActualizarSocio:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: Ana
+        apellido:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "García"
+        email:
+          type: string
+          format: email
+          description: "Se recortan los espacios externos y se convierte a minúsculas."
+          example: "ana@example.com"
+        telefono:
+          type: string
+          maxLength: 20
+          example: "5551234567"
+        activo:
+          type: boolean
+          example: true
+      description: "Enviá al menos uno de los campos definidos en el esquema."
+      anyOf:
+        - required:
+            - nombre
+        - required:
+            - apellido
+        - required:
+            - email
+        - required:
+            - telefono
+        - required:
+            - activo
+    CrearClase:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Yoga
+        descripcion:
+          type: string
+          maxLength: 500
+          example: Yoga para principiantes
+        cupoMaximo:
+          type: integer
+          minimum: 1
+          example: 12
+      required:
+        - nombre
+        - cupoMaximo
+    Clase:
+      type: object
+      required:
+        - id
+        - nombre
+        - cupoMaximo
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Yoga
+        descripcion:
+          type: string
+          maxLength: 500
+          example: Yoga para principiantes
+        cupoMaximo:
+          type: integer
+          minimum: 1
+          example: 12
+    ActualizarClase:
+      type: object
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: Yoga
+        descripcion:
+          type: string
+          maxLength: 500
+          example: Yoga para principiantes
+        cupoMaximo:
+          type: integer
+          minimum: 1
+          example: 12
+      description: "Enviá al menos uno de los campos definidos en el esquema."
+      anyOf:
+        - required:
+            - nombre
+        - required:
+            - descripcion
+        - required:
+            - cupoMaximo
+    CrearInscripcion:
+      type: object
+      properties:
+        socioId:
+          $ref: "#/components/schemas/Id"
+        claseId:
+          $ref: "#/components/schemas/Id"
+      required:
+        - socioId
+        - claseId
+    Inscripcion:
+      type: object
+      required:
+        - id
+        - socioId
+        - claseId
+      properties:
+        id:
+          $ref: "#/components/schemas/Id"
+        socioId:
+          $ref: "#/components/schemas/Id"
+        claseId:
+          $ref: "#/components/schemas/Id"
