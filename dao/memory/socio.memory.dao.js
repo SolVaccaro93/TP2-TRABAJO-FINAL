@@ -1,7 +1,7 @@
 export class SocioMemoryDao {
-  constructor() {
-    this.socios = [];
-    this.nextId = 1;
+  constructor(sociosIniciales = []) {
+    this.socios = sociosIniciales.map((socio, index) => ({ ...socio, id: index + 1 }));
+    this.nextId = this.socios.length + 1;
   }
 
   async getAll() {

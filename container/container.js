@@ -21,7 +21,14 @@ export const makeContainer = () => {
   registerInscripcionListener({ eventBus, notifier });
 
   // DAOs
-  const socioDao = new SocioMemoryDao();
+  const socioDao = new SocioMemoryDao([
+    {
+      nombre: 'Lucía',
+      apellido: 'Demo',
+      email: 'lucia.demo@example.com',
+      activo: true,
+    },
+  ]);
   const claseDao = new ClaseMemoryDao();
   const inscripcionDao = new InscripcionMemoryDao();
 
